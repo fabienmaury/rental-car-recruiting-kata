@@ -12,7 +12,6 @@ import org.rental.car.CarStatus;
 import org.rental.car.CarType;
 import org.rental.quotation.Quotation;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -32,7 +31,7 @@ class RentalServiceTest {
     void should_return_nothing_when_no_agency() {
         Mockito.when(agenciesRepository.findNearest(ArgumentMatchers.anyString())).thenReturn(Collections.emptyList());
 
-        List<Quotation> result = sut.search("75008", monday_morning(), monday_endday(), Collections.emptyList(), "EUR");
+        List<Quotation> result = sut.search("75008", monday_morning(), monday_endday(), Collections.emptyList(), "EUR", new ArrayList<>());
 
     }
 
@@ -48,7 +47,7 @@ class RentalServiceTest {
                 )
         );
 
-        List<Quotation> result = sut.search("75008", monday_morning(), monday_endday(), Collections.emptyList(), "EUR");
+        List<Quotation> result = sut.search("75008", monday_morning(), monday_endday(), Collections.emptyList(), "EUR", new ArrayList<>());
 
         assertThat(result).hasSize(1);
     }
@@ -65,7 +64,7 @@ class RentalServiceTest {
                 )
         );
 
-        List<Quotation> result = sut.search("75008", monday_morning(), monday_endday(), Collections.emptyList(), "EUR");
+        List<Quotation> result = sut.search("75008", monday_morning(), monday_endday(), Collections.emptyList(), "EUR", new ArrayList<>());
 
         assertThat(result).as("should be for one day")
                 .extracting(Quotation::getNbDays)
@@ -88,7 +87,7 @@ class RentalServiceTest {
                 available_MINIBUS("Citroen space tourer", 163.56, 250.0))
         );
 
-        List<Quotation> result = sut.search("75008", saturday_morning(), saturday_endday(), Collections.emptyList(), "EUR");
+        List<Quotation> result = sut.search("75008", saturday_morning(), saturday_endday(), Collections.emptyList(), "EUR", new ArrayList<>());
 
         assertThat(result).as("should be for one day")
                 .extracting(Quotation::getNbDays)
@@ -107,7 +106,7 @@ class RentalServiceTest {
                 )
         );
 
-        List<Quotation> result = sut.search("75008", saturday_morning().minusDays(1), saturday_endday(), Collections.emptyList(), "EUR");
+        List<Quotation> result = sut.search("75008", saturday_morning().minusDays(1), saturday_endday(), Collections.emptyList(), "EUR", new ArrayList<>());
 
         assertThat(result.get(0))
                 .as("should be for 2 day")
@@ -130,7 +129,7 @@ class RentalServiceTest {
                 )
         );
 
-        List<Quotation> result = sut.search("75008", monday_morning(), monday_endday(), asList(CarType.SUV), "EUR");
+        List<Quotation> result = sut.search("75008", monday_morning(), monday_endday(), asList(CarType.SUV), "EUR", new ArrayList<>());
 
         assertThat(result)
                 .as("should only return SUV")
@@ -147,7 +146,7 @@ class RentalServiceTest {
                 )
         );
 
-        List<Quotation> result = sut.search("75008", monday_morning(), tuesday_endday(), Collections.emptyList(), "EUR");
+        List<Quotation> result = sut.search("75008", monday_morning(), tuesday_endday(), Collections.emptyList(), "EUR", new ArrayList<>());
 
         assertThat(result)
                 .as("should return only one quotation")
@@ -166,9 +165,9 @@ class RentalServiceTest {
                 car("Audi A4", 120.0, 192.0, CarStatus.AVAILABLE, CarType.BREAK))
         );
 
-        List<Quotation> quotations_1_days = sut.search("75008", monday_morning(), monday_endday(), Collections.emptyList(), "EUR");
-        List<Quotation> quotations_2_days = sut.search("75008", monday_morning(), monday_endday().plusDays(1), Collections.emptyList(), "EUR");
-        List<Quotation> quotations_3_days = sut.search("75008", monday_morning(), monday_endday().plusDays(2), Collections.emptyList(), "EUR");
+        List<Quotation> quotations_1_days = sut.search("75008", monday_morning(), monday_endday(), Collections.emptyList(), "EUR", new ArrayList<>());
+        List<Quotation> quotations_2_days = sut.search("75008", monday_morning(), monday_endday().plusDays(1), Collections.emptyList(), "EUR", new ArrayList<>());
+        List<Quotation> quotations_3_days = sut.search("75008", monday_morning(), monday_endday().plusDays(2), Collections.emptyList(), "EUR", new ArrayList<>());
 
         assertThat(price(quotations_1_days))
                 .isGreaterThan(price(quotations_2_days))
@@ -186,9 +185,9 @@ class RentalServiceTest {
                 car("Audi A4", 120.0, 192.0, CarStatus.AVAILABLE, CarType.BREAK))
         );
 
-        List<Quotation> quotations_3_days = sut.search("75008", monday_morning(), monday_endday().plusDays(2), Collections.emptyList(), "EUR");
-        List<Quotation> quotations_4_days = sut.search("75008", monday_morning(), monday_endday().plusDays(3), Collections.emptyList(), "EUR");
-        List<Quotation> quotations_5_days = sut.search("75008", monday_morning(), monday_endday().plusDays(4), Collections.emptyList(), "EUR");
+        List<Quotation> quotations_3_days = sut.search("75008", monday_morning(), monday_endday().plusDays(2), Collections.emptyList(), "EUR", new ArrayList<>());
+        List<Quotation> quotations_4_days = sut.search("75008", monday_morning(), monday_endday().plusDays(3), Collections.emptyList(), "EUR", new ArrayList<>());
+        List<Quotation> quotations_5_days = sut.search("75008", monday_morning(), monday_endday().plusDays(4), Collections.emptyList(), "EUR", new ArrayList<>());
 
         assertThat(price(quotations_5_days)).isNotEqualTo(price(quotations_4_days));
 

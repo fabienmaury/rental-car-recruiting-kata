@@ -29,8 +29,7 @@ public class RentalService {
         this.carsRepository = carsRepository;
     }
 
-    public List<Quotation> search(String postalCode, LocalDateTime from, LocalDateTime to, List<CarType> filter, String currency) {
-
+    public List<Quotation> search(String postalCode, LocalDateTime from, LocalDateTime to, List<CarType> filter, String currency, List<String> options) {
         List<Agency> agencies = agenciesRepository.findNearest(postalCode);
         List<Quotation> results = new ArrayList<>();
         for (Agency agency : agencies) {
@@ -38,6 +37,11 @@ public class RentalService {
             for (Car car : cars) {
                 if ((!filter.isEmpty() && !filter.contains(car.getType())) || !car.getStatus().equals(CarStatus.AVAILABLE)) {
                     continue;
+                }
+                for (String option : options) {
+                    if(!car.getOptions().contains(option)){
+                        continue;
+                    }
                 }
                 current = from;
                 double price = 0.0;
