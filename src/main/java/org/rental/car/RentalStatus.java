@@ -1,6 +1,6 @@
 package org.rental.car;
 
-public enum CarStatus {
+public enum RentalStatus {
     ACQUIRED,
     AVAILABLE,
     ON_SALE,

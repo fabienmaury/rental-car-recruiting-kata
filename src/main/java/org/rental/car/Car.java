@@ -1,29 +1,24 @@
 package org.rental.car;
 
+import org.rental.vehicle.Vehicle;
+
 import java.util.List;
 
-public class Car {
+public class Car extends Vehicle {
 
-    private final String id;
     private final String label;
     private final double dailyBasePrice;
     private final double dailyWeekEndPrice;
     private final CarType type;
-    private final CarStatus status;
     private final List<String> options;
 
-    public Car(String id, String label, double dailyBasePrice, double dailyWeekEndPrice, CarType type, CarStatus status, List<String> options) {
-        this.id = id;
+    public Car(String id, String label, double dailyBasePrice, double dailyWeekEndPrice, CarType type, RentalStatus status, List<String> options) {
+        super(id, status);
         this.label = label;
         this.dailyBasePrice = dailyBasePrice;
         this.dailyWeekEndPrice = dailyWeekEndPrice;
         this.type = type;
-        this.status = status;
         this.options = options;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public String getLabel() {
@@ -40,10 +35,6 @@ public class Car {
 
     public List<String> getOptions() {
         return options;
-    }
-
-    public CarStatus getStatus() {
-        return status;
     }
 
     public CarType getType() {

@@ -7,12 +7,12 @@ import org.mockito.stubbing.OngoingStubbing;
 import org.rental.agency.AgenciesRepository;
 import org.rental.agency.Agency;
 import org.rental.agency.AgencyCarsRepository;
+import org.rental.agency.PortAgencyBoatRepository;
 import org.rental.car.Car;
-import org.rental.car.CarStatus;
+import org.rental.car.RentalStatus;
 import org.rental.car.CarType;
 import org.rental.quotation.Quotation;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -26,11 +26,12 @@ class RentalServiceTest {
     private AgenciesRepository agenciesRepository = Mockito.mock(AgenciesRepository.class);
 
     private AgencyCarsRepository carsRepository = Mockito.mock(AgencyCarsRepository.class);
-    private RentalService sut = new RentalService(agenciesRepository, carsRepository);
+    private PortAgencyBoatRepository boatRepository = Mockito.mock(PortAgencyBoatRepository.class);
+    private RentalService sut = new RentalService(agenciesRepository, carsRepository, boatRepository);
 
     @Test
     void should_return_nothing_when_no_agency() {
-        Mockito.when(agenciesRepository.findNearest(ArgumentMatchers.anyString())).thenReturn(Collections.emptyList());
+        Mockito.when(agenciesRepository.findNearestCarRepository(ArgumentMatchers.anyString())).thenReturn(Collections.emptyList());
 
         List<Quotation> result = sut.search("75008", monday_morning(), monday_endday(), Collections.emptyList(), "EUR");
 
@@ -38,13 +39,13 @@ class RentalServiceTest {
 
     @Test
     void should_return_quotation_only_for_available_cars() {
-        Mockito.when(agenciesRepository.findNearest(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
+        Mockito.when(agenciesRepository.findNearestCarRepository(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
         given_the_following_cars_on_period().thenReturn(asList(
-                        car("Fiat 500", 66.0, 105.0, CarStatus.ALLOCATED, CarType.BERLINE),
-                        car("Peugeot 308", 77.0, 118.0, CarStatus.AVAILABLE, CarType.BERLINE),
-                        car("Audi A4", 120.0, 192.0, CarStatus.DAMAGED, CarType.BREAK),
-                        car("BMW X1", 134.0, 211.5, CarStatus.ON_RENT, CarType.SUV),
-                        car("Citroen space tourer", 163.56, 250.0, CarStatus.OVERDUE, CarType.MINIBUS)
+                        car("Fiat 500", 66.0, 105.0, RentalStatus.ALLOCATED, CarType.BERLINE),
+                        car("Peugeot 308", 77.0, 118.0, RentalStatus.AVAILABLE, CarType.BERLINE),
+                        car("Audi A4", 120.0, 192.0, RentalStatus.DAMAGED, CarType.BREAK),
+                        car("BMW X1", 134.0, 211.5, RentalStatus.ON_RENT, CarType.SUV),
+                        car("Citroen space tourer", 163.56, 250.0, RentalStatus.OVERDUE, CarType.MINIBUS)
                 )
         );
 
@@ -55,13 +56,13 @@ class RentalServiceTest {
 
     @Test
     void should_return_cars_quotation_based_on_week_price() {
-        Mockito.when(agenciesRepository.findNearest(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
+        Mockito.when(agenciesRepository.findNearestCarRepository(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
         given_the_following_cars_on_period().thenReturn(asList(
-                        car("Fiat 500", 66.0, 105.0, CarStatus.AVAILABLE, CarType.BERLINE),
-                        car("Peugeot 308", 77.0, 118.0, CarStatus.AVAILABLE, CarType.BERLINE),
-                        car("Audi A4", 120.0, 192.0, CarStatus.AVAILABLE, CarType.BREAK),
-                        car("BMW X1", 134.0, 211.5, CarStatus.AVAILABLE, CarType.SUV),
-                        car("Citroen space tourer", 163.56, 250.0, CarStatus.AVAILABLE, CarType.MINIBUS)
+                        car("Fiat 500", 66.0, 105.0, RentalStatus.AVAILABLE, CarType.BERLINE),
+                        car("Peugeot 308", 77.0, 118.0, RentalStatus.AVAILABLE, CarType.BERLINE),
+                        car("Audi A4", 120.0, 192.0, RentalStatus.AVAILABLE, CarType.BREAK),
+                        car("BMW X1", 134.0, 211.5, RentalStatus.AVAILABLE, CarType.SUV),
+                        car("Citroen space tourer", 163.56, 250.0, RentalStatus.AVAILABLE, CarType.MINIBUS)
                 )
         );
 
@@ -79,7 +80,7 @@ class RentalServiceTest {
 
     @Test
     void should_return_can_quote_for_weekend_price() {
-        Mockito.when(agenciesRepository.findNearest(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
+        Mockito.when(agenciesRepository.findNearestCarRepository(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
         given_the_following_cars_on_period().thenReturn(asList(
                 available_berline("Fiat 500", 66.0, 105.0),
                 available_berline("Peugeot 308", 77.0, 118.0),
@@ -101,9 +102,9 @@ class RentalServiceTest {
 
     @Test
     void should_return_cars_quotation_based_on_average_day_price() {
-        Mockito.when(agenciesRepository.findNearest(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
+        Mockito.when(agenciesRepository.findNearestCarRepository(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
         given_the_following_cars_on_period().thenReturn(asList(
-                        car("Fiat 500", 66.0, 105.0, CarStatus.AVAILABLE, CarType.BERLINE)
+                        car("Fiat 500", 66.0, 105.0, RentalStatus.AVAILABLE, CarType.BERLINE)
                 )
         );
 
@@ -120,13 +121,13 @@ class RentalServiceTest {
 
     @Test
     void should_filter_by_car_type() {
-        Mockito.when(agenciesRepository.findNearest(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
+        Mockito.when(agenciesRepository.findNearestCarRepository(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
         given_the_following_cars_on_period().thenReturn(asList(
-                        car("Fiat 500", 66.0, 105.0, CarStatus.AVAILABLE, CarType.BERLINE),
-                        car("Peugeot 308", 77.0, 118.0, CarStatus.AVAILABLE, CarType.BERLINE),
-                        car("Audi A4", 120.0, 192.0, CarStatus.AVAILABLE, CarType.BREAK),
-                        car("BMW X1", 134.0, 211.5, CarStatus.AVAILABLE, CarType.SUV),
-                        car("Citroen space tourer", 163.56, 250.0, CarStatus.AVAILABLE, CarType.MINIBUS)
+                        car("Fiat 500", 66.0, 105.0, RentalStatus.AVAILABLE, CarType.BERLINE),
+                        car("Peugeot 308", 77.0, 118.0, RentalStatus.AVAILABLE, CarType.BERLINE),
+                        car("Audi A4", 120.0, 192.0, RentalStatus.AVAILABLE, CarType.BREAK),
+                        car("BMW X1", 134.0, 211.5, RentalStatus.AVAILABLE, CarType.SUV),
+                        car("Citroen space tourer", 163.56, 250.0, RentalStatus.AVAILABLE, CarType.MINIBUS)
                 )
         );
 
@@ -140,10 +141,10 @@ class RentalServiceTest {
 
     @Test
     void should_have_discount_price_when_have_the_second_day() {
-        Mockito.when(agenciesRepository.findNearest(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
+        Mockito.when(agenciesRepository.findNearestCarRepository(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
         double daily_week_price = 120.0;
         given_the_following_cars_on_period().thenReturn(asList(
-                        car("Audi A4", daily_week_price, 192.0, CarStatus.AVAILABLE, CarType.BREAK)
+                        car("Audi A4", daily_week_price, 192.0, RentalStatus.AVAILABLE, CarType.BREAK)
                 )
         );
 
@@ -161,9 +162,9 @@ class RentalServiceTest {
 
     @Test
     void should_have_decreasing_price() {
-        Mockito.when(agenciesRepository.findNearest(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
+        Mockito.when(agenciesRepository.findNearestCarRepository(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
         given_the_following_cars_on_period().thenReturn(asList(
-                car("Audi A4", 120.0, 192.0, CarStatus.AVAILABLE, CarType.BREAK))
+                car("Audi A4", 120.0, 192.0, RentalStatus.AVAILABLE, CarType.BREAK))
         );
 
         List<Quotation> quotations_1_days = sut.search("75008", monday_morning(), monday_endday(), Collections.emptyList(), "EUR");
@@ -181,9 +182,9 @@ class RentalServiceTest {
 
     @Test
     void should_have_decreasing_discount() {
-        Mockito.when(agenciesRepository.findNearest(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
+        Mockito.when(agenciesRepository.findNearestCarRepository(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
         given_the_following_cars_on_period().thenReturn(asList(
-                car("Audi A4", 120.0, 192.0, CarStatus.AVAILABLE, CarType.BREAK))
+                car("Audi A4", 120.0, 192.0, RentalStatus.AVAILABLE, CarType.BREAK))
         );
 
         List<Quotation> quotations_3_days = sut.search("75008", monday_morning(), monday_endday().plusDays(2), Collections.emptyList(), "EUR");
@@ -205,24 +206,24 @@ class RentalServiceTest {
         return Mockito.when(carsRepository.getCarStatus(any(Agency.class), any(LocalDateTime.class), any(LocalDateTime.class)));
     }
 
-    private Car car(String label, double dailyBasePrice, double dailyWeekEndPrice, CarStatus status, CarType type) {
+    private Car car(String label, double dailyBasePrice, double dailyWeekEndPrice, RentalStatus status, CarType type) {
         return new Car(UUID.randomUUID().toString(), label, dailyBasePrice, dailyWeekEndPrice, type, status, Collections.emptyList());
     }
 
     private Car available_berline(String label, double dailyBasePrice, double dailyWeekEndPrice) {
-        return new Car(UUID.randomUUID().toString(), label, dailyBasePrice, dailyWeekEndPrice, CarType.BERLINE, CarStatus.AVAILABLE, Collections.emptyList());
+        return new Car(UUID.randomUUID().toString(), label, dailyBasePrice, dailyWeekEndPrice, CarType.BERLINE, RentalStatus.AVAILABLE, Collections.emptyList());
     }
 
     private Car available_SUV(String label, double dailyBasePrice, double dailyWeekEndPrice) {
-        return new Car(UUID.randomUUID().toString(), label, dailyBasePrice, dailyWeekEndPrice, CarType.SUV, CarStatus.AVAILABLE, Collections.emptyList());
+        return new Car(UUID.randomUUID().toString(), label, dailyBasePrice, dailyWeekEndPrice, CarType.SUV, RentalStatus.AVAILABLE, Collections.emptyList());
     }
 
     private Car available_MINIBUS(String label, double dailyBasePrice, double dailyWeekEndPrice) {
-        return new Car(UUID.randomUUID().toString(), label, dailyBasePrice, dailyWeekEndPrice, CarType.MINIBUS, CarStatus.AVAILABLE, Collections.emptyList());
+        return new Car(UUID.randomUUID().toString(), label, dailyBasePrice, dailyWeekEndPrice, CarType.MINIBUS, RentalStatus.AVAILABLE, Collections.emptyList());
     }
 
     private Car available_break(String label, double dailyBasePrice, double dailyWeekEndPrice) {
-        return new Car(UUID.randomUUID().toString(), label, dailyBasePrice, dailyWeekEndPrice, CarType.BREAK, CarStatus.AVAILABLE, Collections.emptyList());
+        return new Car(UUID.randomUUID().toString(), label, dailyBasePrice, dailyWeekEndPrice, CarType.BREAK, RentalStatus.AVAILABLE, Collections.emptyList());
     }
 
     private LocalDateTime monday_endday() {

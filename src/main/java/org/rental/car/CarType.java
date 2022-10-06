@@ -1,9 +1,11 @@
 package org.rental.car;
 
-public enum CarType {
+import org.rental.vehicle.VehicleType;
+
+public enum CarType implements VehicleType {
     BERLINE,
     MINIBUS,
     BREAK,
-    SUV
+    SUV;
 
 }
