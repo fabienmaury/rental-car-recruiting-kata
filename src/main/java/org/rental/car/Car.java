@@ -2,31 +2,25 @@ package org.rental.car;
 
 import org.rental.vehicle.RentalStatus;
 import org.rental.vehicle.VehicleType;
+import org.rental.vehicle.Vehicle;
 
 import java.util.List;
 
-public class Car {
+public class Car extends Vehicle {
 
-    private final String id;
     private final String label;
     private final double dailyBasePrice;
     private final double dailyWeekEndPrice;
-    private final VehicleType type;
-    private final RentalStatus status;
+    private final CarType type;
     private final List<String> options;
 
-    public Car(String id, String label, double dailyBasePrice, double dailyWeekEndPrice, VehicleType type, RentalStatus status, List<String> options) {
-        this.id = id;
+    public Car(String id, String label, double dailyBasePrice, double dailyWeekEndPrice, CarType type, RentalStatus status, List<String> options) {
+        super(id, status);
         this.label = label;
         this.dailyBasePrice = dailyBasePrice;
         this.dailyWeekEndPrice = dailyWeekEndPrice;
         this.type = type;
-        this.status = status;
         this.options = options;
-    }
-
-    public String getId() {
-        return id;
     }
 
     public String getLabel() {
@@ -45,11 +39,7 @@ public class Car {
         return options;
     }
 
-    public RentalStatus getStatus() {
-        return status;
-    }
-
-    public VehicleType getType() {
+    public CarType getType() {
         return type;
     }
 }
