@@ -2,10 +2,13 @@ package org.rental;
 
 import org.rental.agency.RentalRepository;
 import org.rental.agency.Agency;
+import org.rental.boat.Boat;
+import org.rental.boat.BoatType;
 import org.rental.car.Car;
 import org.rental.vehicle.RentalStatus;
 import org.rental.car.CarType;
 import org.rental.quotation.Quotation;
+import org.rental.vehicle.Vehicle;
 import org.rental.vehicle.VehicleType;
 import org.springframework.stereotype.Service;
 
@@ -29,22 +32,38 @@ public class RentalService {
 
     public List<Quotation> search(String postalCode, LocalDateTime from, LocalDateTime to, List<VehicleType> filter, String currency) {
 
-        List<Agency> agencies = rentalRepository.findNearestCarAgency(postalCode);
+        List<Agency> agencies;
+        if(!filter.isEmpty() && filter.get(0) instanceof BoatType) {
+            agencies = rentalRepository.findNearestBoatAgency(postalCode);
+        } else {
+            agencies = rentalRepository.findNearestCarAgency(postalCode);
+        }
 
         List<Quotation> results = new ArrayList<>();
         for (Agency agency : agencies) {
 
-            List<Car> cars = rentalRepository.getCarStatus(agency, from, to);
+            List<Vehicle> cars = new ArrayList<>();
 
-            for (Car car : cars) {
+            if(filter.isEmpty() || filter.get(0) instanceof CarType) {
+              cars.addAll(rentalRepository.getCarStatus(agency, from, to));
+            } else {
+                cars.addAll(rentalRepository.getBoatStatus(agency, from, to));
+            }
 
-                if (!filter.isEmpty() && !filter.contains(car.getType())) {
+            for (Vehicle car : cars) {
+
+                if (car instanceof Car && !filter.isEmpty() && !filter.contains(((Car) car).getType())) {
                     continue;
                 }
 
                 if (!car.getStatus().equals(RentalStatus.AVAILABLE)) {
                     continue;
                 }
+
+                if (car instanceof Boat && !filter.isEmpty() && !filter.contains(((Boat) car).getType())) {
+                    continue;
+                }
+
                 current = from;
                 double price = 0.0;
                 nbDays = 0;
@@ -54,12 +73,24 @@ public class RentalService {
                     nbDays += 1;
 
                     if (current.getDayOfWeek().getValue() < 6) {
-                        price += car.getDailyBasePrice();
+                        if (car instanceof Car) {
+                            price += ((Car) car).getDailyBasePrice();
+                        } else {
+                            price += ((Boat) car).getDailyBasePrice();
+                        }
                     } else {
-                        price += car.getDailyWeekEndPrice();
+                        if (car instanceof Car) {
+                            price += ((Car) car).getDailyWeekEndPrice();
+                        } else {
+                            // no overcharge for boat the weekend
+                            price += ((Boat) car).getDailyBasePrice();
+                        }
                     }
 
-                    getDiscount();
+                    if(car instanceof Car) {
+                        // no discount for boat
+                        getDiscount();
+                    }
 
                     current = current.plusDays(1);
                 }
