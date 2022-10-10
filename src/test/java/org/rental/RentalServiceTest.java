@@ -6,6 +6,8 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.OngoingStubbing;
 import org.rental.agency.Agency;
 import org.rental.agency.RentalRepository;
+import org.rental.boat.Boat;
+import org.rental.boat.BoatType;
 import org.rental.car.Car;
 import org.rental.quotation.Quotation;
 import org.rental.vehicle.RentalStatus;
@@ -195,6 +197,20 @@ class RentalServiceTest {
         assertThat(difference1).isLessThan(difference2);
     }
 
+    @Test
+    void should_return_quotation_for_boat() {
+        Mockito.when(agenciesRepository.findNearestBoatAgency(ArgumentMatchers.anyString())).thenReturn(asList(new Agency("7500800001")));
+        given_the_following_boats_on_period().thenReturn(asList(
+                        boat("CRN 132", 66.0, RentalStatus.ALLOCATED, BoatType.YACHT),
+                        boat("Benetti INDIA", 163.56, RentalStatus.OVERDUE, BoatType.YACHT)
+                )
+        );
+
+        List<Quotation> result = sut.search("75008", monday_morning(), monday_endday(), Collections.emptyList(), "EUR");
+
+    }
+
+
     private double price(List<Quotation> quotations) {
         return quotations.get(0).getDailyPrice();
     }
@@ -202,9 +218,15 @@ class RentalServiceTest {
     private OngoingStubbing<List<Car>> given_the_following_cars_on_period() {
         return Mockito.when(agenciesRepository.getCarStatus(any(Agency.class), any(LocalDateTime.class), any(LocalDateTime.class)));
     }
+    private OngoingStubbing<List<Boat>> given_the_following_boats_on_period() {
+        return Mockito.when(agenciesRepository.getBoatStatus(any(Agency.class), any(LocalDateTime.class), any(LocalDateTime.class)));
+    }
 
     private Car car(String label, double dailyBasePrice, double dailyWeekEndPrice, RentalStatus status, CarType type) {
         return new Car(UUID.randomUUID().toString(), label, dailyBasePrice, dailyWeekEndPrice, type, status, Collections.emptyList());
+    }
+    private Boat boat(String label, double dailyBasePrice, RentalStatus status, BoatType type) {
+        return new Boat(UUID.randomUUID().toString(),status, label, dailyBasePrice, type);
     }
 
     private Car available_berline(String label, double dailyBasePrice, double dailyWeekEndPrice) {
